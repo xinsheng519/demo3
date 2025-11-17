@@ -198,10 +198,8 @@ class dashboardController extends Controller
 
         foreach ($data as $item) {
 
-            // 新订单
             if ($currentOrder !== $item->order_id) {
         
-                // 如果不是第一个订单，先输出上一单的总计
                 if ($currentOrder !== null) {
                     $sheet->setCellValue("A{$row}", "Order No: {$currentOrder} Total");
                     $sheet->setCellValue("G$row", $orderTotal);
@@ -209,12 +207,9 @@ class dashboardController extends Controller
                     $row++;
                 }
         
-                // 切换新订单
                 $currentOrder = $item->order_id;
                 $orderTotal = 0;
         
-                // 第一行 → 显示订单基本信息（Order Date, Customer, State）
-                // Product 信息也一起放
                 $sheet->fromArray([
                     $item->order_date,   // A
                     $item->customer,     // B
@@ -230,7 +225,6 @@ class dashboardController extends Controller
                 $row++;
         
             } else {
-                // 同一个订单的后续商品行 → Order Date / Customer / State 不再显示
                 $sheet->fromArray([
                     '',                  // A  Order Date
                     '',                  // B  Customer
