@@ -11,6 +11,7 @@ This is a Laravel 12 demo project for testing Excel export and data dashboard.
 ## Installation
 1. Clone the repository: https://github.com/xinsheng519/demo3
 2. Copy env.example file replace your database and change name to .env
+3. Run php artisan key:generate
 3. Run php artisan config:cache
 4. Run composer install
 5. Run php artisan migrate
