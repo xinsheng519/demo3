@@ -9,7 +9,7 @@ This is a Laravel 12 demo project for testing Excel export and data dashboard.
 - XAMPP (optional)
 
 ## Installation
-1. Clone the repository: https://github.com/xinsheng519/demo3
+1. Clone the repository: git clone https://github.com/xinsheng519/demo3.git
 2. Copy env.example file replace your database and change name to .env
 3. Run php artisan key:generate
 3. Run php artisan config:cache
