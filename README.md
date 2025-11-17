@@ -17,7 +17,7 @@ This is a Laravel 12 demo project for testing Excel export and data dashboard.
 6. Run php artisan db:seed
 7. Run php artisan serve
 
-- if composer install got issue try to going php.ini find out the extension=gd uncommand it
+- if composer install got issue try to going php.ini find out the extension=gd uncomment it
 
 ## Notes
 1. I decided not to implement queue processing for the Excel export feature.
