@@ -11,14 +11,15 @@ This is a Laravel 12 demo project for testing Excel export and data dashboard.
 ## Installation
 1. Clone the repository: git clone https://github.com/xinsheng519/demo3.git
 2. Copy env.example file replace your database and change name to .env
-3. Run php artisan key:generate
-3. Run php artisan config:cache
-4. Run composer install
-5. Run php artisan migrate
-6. Run php artisan db:seed
-7. Run php artisan serve
+3. Run composer install
+4. Run php artisan key:generate
+5. Run php artisan config:cache
+6. Run php artisan migrate
+7. Run php artisan db:seed
+8. Run php artisan serve
+9. Open browser enter your server eg:localhost:8000
 
-- if composer install got issue try to going php.ini find out the extension=gd uncomment it
+- if composer install got issue try to going xampp/php/php.ini find out the extension=gd uncomment it
 
 ## Notes
 1. I decided not to implement queue processing for the Excel export feature.
