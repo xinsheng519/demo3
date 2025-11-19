@@ -92,166 +92,147 @@ class dashboardController extends Controller
         }
     }
 
-    public function exportCsv()
-    {
-        $totalNumber = DB::table('order_items')->count();
-        $totalRevenue = DB::table('orders')->sum('total_amount');
-        $avgAmount = DB::table('orders')->avg('total_amount');
-
-        $topProducts = DB::table('order_items as oi')
-        ->select('oi.product_id', DB::raw('SUM(oi.quantity) as total_sold'), 'p.name')
-        ->leftJoin('products as p', 'p.id', '=', 'oi.product_id')
-        ->groupBy('oi.product_id')
-        ->orderByDesc('total_sold')
-        ->limit(3)
-        ->pluck('name')
-        ->toArray();
-
-        $data = DB::table('order_items as oi')
-        ->select(
-            'oi.id',
-            'o.order_date',
-            'c.name as customer',
-            'c.state',
-            'cate.name as category',
-            'p.name as product',
-            'oi.quantity',
-            'oi.unit_price',
-            'oi.unit_price as sub_total'
-        )
-        ->leftJoin('products as p', 'p.id', '=', 'oi.product_id')
-        ->leftJoin('orders as o', 'o.id', '=', 'oi.order_id')
-        ->leftJoin('customers as c', 'c.id', '=', 'o.customer_id')
-        ->leftJoin('categories as cate', 'cate.id', '=', 'p.category_id')
-        ->get();
-
-        return response()
-        ->view('export', [
-            'totalNumber' => $totalNumber,
-            'totalRevenue' => $totalRevenue,
-            'topProducts' => $topProducts,
-            'avgAmount' => $avgAmount,
-            'data' => $data,
-        ])
-        ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
-        ->header('Content-Disposition', 'attachment; filename="orders.xls"')
-        ->header('Cache-Control', 'max-age=0');
-    }
     public function exportXlsx()
     {
-
-        $totalNumber = DB::table('order_items')->count();
-        $totalRevenue = DB::table('orders')->sum('total_amount');
-        $avgAmount = DB::table('orders')->avg('total_amount');
-
-        $topProducts = DB::table('order_items as oi')
-        ->select('oi.product_id', DB::raw('SUM(oi.quantity) as total_sold'), 'p.name')
-        ->leftJoin('products as p', 'p.id', '=', 'oi.product_id')
-        ->groupBy('oi.product_id')
-        ->orderByDesc('total_sold')
-        ->limit(3)
-        ->pluck('name')
-        ->toArray();
-
-        $data = DB::table('order_items as oi')
-        ->select(
-            'oi.id',
-            'o.order_date',
-            'o.id as order_id',
-            'c.name as customer',
-            'c.state',
-            'cate.name as category',
-            'p.name as product',
-            'oi.quantity',
-            'oi.unit_price',
-            'oi.unit_price as sub_total'
-        )
-        ->leftJoin('products as p', 'p.id', '=', 'oi.product_id')
-        ->leftJoin('orders as o', 'o.id', '=', 'oi.order_id')
-        ->leftJoin('customers as c', 'c.id', '=', 'o.customer_id')
-        ->leftJoin('categories as cate', 'cate.id', '=', 'p.category_id')
-        ->orderBy('o.id')
-        ->get();
-
-        \Log::debug($data);
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        $sheet->setCellValue('A1', 'Total Orders');
-        $sheet->setCellValue('B1', $totalNumber);
-
-        $sheet->setCellValue('A2', 'Total Revenue');
-        $sheet->setCellValue('B2', $totalRevenue);
-
-        $sheet->setCellValue('A3', 'Average Order Value');
-        $sheet->setCellValue('B3', $avgAmount);
-
-        $sheet->setCellValue('A4', 'Top 3 Products');
-        $sheet->setCellValue('B4', implode(', ', $topProducts));
-
-        $sheet->fromArray(['Order Date','Customer','State','Category','Product','Quantity','Unit Price','Subtotal'], null, 'A6');
-
-        $row = 7;
-        $currentOrder = null;
-        $orderTotal = 0;
-
-        foreach ($data as $item) {
-
-            if ($currentOrder !== $item->order_id) {
+        try {
+            $totalNumber = DB::table('order_items')->count();
+            $totalRevenue = DB::table('orders')->sum('total_amount');
+            $avgAmount = DB::table('orders')->avg('total_amount');
+    
+            $topProducts = DB::table('order_items as oi')
+            ->select('oi.product_id', DB::raw('SUM(oi.quantity) as total_sold'), 'p.name')
+            ->leftJoin('products as p', 'p.id', '=', 'oi.product_id')
+            ->groupBy('oi.product_id')
+            ->orderByDesc('total_sold')
+            ->limit(3)
+            ->pluck('name')
+            ->toArray();
+    
+            $data = DB::table('order_items as oi')
+            ->select(
+                'oi.id',
+                'o.order_date',
+                'o.id as order_id',
+                'c.name as customer',
+                'c.state',
+                'cate.name as category',
+                'p.name as product',
+                'oi.quantity',
+                'oi.unit_price',
+                'oi.unit_price as sub_total'
+            )
+            ->leftJoin('products as p', 'p.id', '=', 'oi.product_id')
+            ->leftJoin('orders as o', 'o.id', '=', 'oi.order_id')
+            ->leftJoin('customers as c', 'c.id', '=', 'o.customer_id')
+            ->leftJoin('categories as cate', 'cate.id', '=', 'p.category_id')
+            ->orderBy('o.id')
+            ->get();
         
-                if ($currentOrder !== null) {
-                    $sheet->setCellValue("A{$row}", "Order No: {$currentOrder} Total");
-                    $sheet->setCellValue("G$row", $orderTotal);
-                    $sheet->setCellValue("H$row", $orderTotal);
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->mergeCells("A1:B1");
+            $sheet->getStyle("A1:B1")->getFont()->setBold(true);
+            $sheet->mergeCells("A7:H7");
+            $sheet->getStyle("A7:H7")->getFont()->setBold(true);
+            $sheet->setCellValue("A1", "Summary Section");
+    
+            $sheet->setCellValue('A2', 'Total Orders');
+            $sheet->setCellValue('B3', $totalNumber);
+    
+            $sheet->setCellValue('A3', 'Total Revenue');
+            $sheet->setCellValue('B3', $totalRevenue);
+    
+            $sheet->setCellValue('A4', 'Average Order Value');
+            $sheet->setCellValue('B4', $avgAmount);
+    
+            $sheet->setCellValue('A5', 'Top 3 Products');
+            $sheet->setCellValue('B5', implode(', ', $topProducts));
+    
+            $sheet->setCellValue('A7', 'Detailed Table');
+
+            $sheet->fromArray(['Order Date','Customer','State','Category','Product','Quantity','Unit Price','Subtotal'], null, 'A8');
+    
+            $row = 9;
+            $currentOrder = null;
+            $orderTotal = 0;
+    
+            foreach ($data as $item) {
+    
+                if ($currentOrder !== $item->order_id) {
+            
+                    if ($currentOrder !== null) {
+                        $sheet->setCellValue("A{$row}", "Order No: {$currentOrder} Total");
+                        $sheet->setCellValue("G$row", $orderTotal);
+                        $sheet->setCellValue("H$row", $orderTotal);
+                        $row++;
+                    }
+            
+                    $currentOrder = $item->order_id;
+                    $orderTotal = 0;
+            
+                    $sheet->fromArray([
+                        $item->order_date,   // A
+                        $item->customer,     // B
+                        $item->state,        // C
+                        $item->category,     // D
+                        $item->product,      // E
+                        $item->quantity,     // F
+                        $item->unit_price,   // G
+                        $item->sub_total     // H
+                    ], null, "A{$row}");
+            
+                    $orderTotal += $item->sub_total;
+                    $row++;
+            
+                } else {
+                    $sheet->fromArray([
+                        '',                  
+                        '',                  
+                        '',                  
+                        $item->category,     
+                        $item->product,      
+                        $item->quantity,     
+                        $item->unit_price,   
+                        $item->sub_total     
+                    ], null, "A{$row}");
+            
+                    $orderTotal += $item->sub_total;
                     $row++;
                 }
-        
-                $currentOrder = $item->order_id;
-                $orderTotal = 0;
-        
-                $sheet->fromArray([
-                    $item->order_date,   // A
-                    $item->customer,     // B
-                    $item->state,        // C
-                    $item->category,     // D
-                    $item->product,      // E
-                    $item->quantity,     // F
-                    $item->unit_price,   // G
-                    $item->sub_total     // H
-                ], null, "A{$row}");
-        
-                $orderTotal += $item->sub_total;
-                $row++;
-        
-            } else {
-                $sheet->fromArray([
-                    '',                  // A  Order Date
-                    '',                  // B  Customer
-                    '',                  // C  State
-                    $item->category,     // D
-                    $item->product,      // E
-                    $item->quantity,     // F
-                    $item->unit_price,   // G
-                    $item->sub_total     // H
-                ], null, "A{$row}");
-        
-                $orderTotal += $item->sub_total;
+            }
+
+            if ($currentOrder !== null) {
+                $sheet->setCellValue("A{$row}", "Order No: {$currentOrder} Total");
+                $sheet->setCellValue("G$row", $orderTotal);
+                $sheet->setCellValue("H$row", $orderTotal);
                 $row++;
             }
+
+            $lastRow = $row - 1; 
+
+            $styleArray = [
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    ],
+                ],
+            ];
+
+            $sheet->getStyle("A7:H{$lastRow}")->applyFromArray($styleArray);
+            $sheet->getStyle("A1:B5")->applyFromArray($styleArray);
+
+            foreach (range('A', 'H') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+    
+            $writer = new Xlsx($spreadsheet);
+    
+            return response()->streamDownload(function() use ($writer){
+                $writer->save('php://output');
+            }, 'orders.xlsx');
+        } catch (\Throwable $th) {
+            throw $th;
         }
-
-        if ($currentOrder !== null) {
-            $sheet->setCellValue("A$row", "Order No: $currentOrder Total");
-            $sheet->setCellValue("G$row", $orderTotal);
-            $sheet->setCellValue("H$row", $orderTotal);
-        }
-
-        $writer = new Xlsx($spreadsheet);
-
-        return response()->streamDownload(function() use ($writer){
-            $writer->save('php://output');
-        }, 'orders.xlsx');
     }
 }
 
